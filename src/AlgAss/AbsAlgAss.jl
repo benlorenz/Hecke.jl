@@ -975,7 +975,12 @@ function __as_field_with_isomorphism(A::AbsAlgAss{FpFieldElem}, f::FpPolyRingEle
   return Fq, AbsAlgAssToFqMor(A, Fq, inv(M), M, parent(f))
 end
 
-function __as_field_with_isomorphism(A::AbsAlgAss{S}, f::T, M::U) where { S <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem }, T <: Union{ fqPolyRepPolyRingElem, FqPolyRepPolyRingElem }, U <: Union{ fqPolyRepMatrix, FqPolyRepMatrix } }
+function __as_field_with_isomorphism(A::AbsAlgAss{FqFieldElem}, f::FqPolyRingElem, M::FqMatrix)
+  Fr, RtoFr = field_extension(f)
+  return Fr, AbsAlgAssToFqMor(A, Fr, inv(M), M, parent(f), RtoFr)
+end
+
+function __as_field_with_isomorphism(A::AbsAlgAss{S}, f::T, M::U) where { S <: Union{fqPolyRepFieldElem, FqPolyRepFieldElem }, T <: Union{ fqPolyRepPolyRingElem, FqPolyRepPolyRingElem }, U <: Union{ fqPolyRepMatrix, FqPolyRepMatrix } }
   Fr, RtoFr = field_extension(f)
   return Fr, AbsAlgAssToFqMor(A, Fr, inv(M), M, parent(f), RtoFr)
 end
@@ -1235,7 +1240,11 @@ function _radical(A::AbsAlgAss{T}) where { T } #<: Union{ fpFieldElem, Generic.R
         MF = representation_matrix(a)
         for m = 1:nrows(MF)
           for n = 1:ncols(MF)
-            MZ[m, n] = lift(MF[m, n])
+            if T <: FqFieldElem
+              MZ[m, n] = lift(ZZ, MF[m, n])
+            else
+              MZ[m, n] = lift(MF[m, n])
+            end
           end
         end
         t = tr(MZ^Int(pl))
@@ -1253,7 +1262,7 @@ function _radical(A::AbsAlgAss{T}) where { T } #<: Union{ fpFieldElem, Generic.R
   return elem_type(A)[ elem_from_mat_row(A, C, i) for i = 1:nrows(C) ]
 end
 
-function _radical(A::AbsAlgAss{T}) where { T <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem } }
+function _radical(A::AbsAlgAss{T}) where { T <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem, FqFieldElem } }
   F = base_ring(A)
 
   p = characteristic(F)

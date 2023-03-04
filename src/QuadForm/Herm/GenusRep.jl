@@ -275,7 +275,7 @@ function _neighbours(L, P, result, max, callback = eqcallback, use_auto = true)
       alpha = h\(degree(k) == 1 ? one(k) : gen(k))
       Tram = matrix(kp, 2, 1, [2, hp(tr(alpha))])
     end
-    for w::Vector{FqPolyRepFieldElem} in LO
+    for w::Vector{FqFieldElem} in LO
       __w = [ (hext\w[i]) for i in 1:n]
       x = [ sum(T[i, j] * (__w[i]) for i in 1:n if !iszero(w[i])) for j in 1:ncols(T)]
       nrm = _inner_product(form, x, x, a)
