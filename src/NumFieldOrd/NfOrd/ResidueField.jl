@@ -81,7 +81,7 @@ function _residue_field_nonindex_divisor_helper_fq_default(f::QQPolyRingElem, g:
 
   h = gcd(gmodp, fmodp)
 
-  return Nemo._FiniteField(h, cached = false)[1], h
+  return Nemo._residue_field(h)[1], h
 end
 
 # It is assumed that p is not an index divisor
@@ -155,6 +155,11 @@ end
 #
 ################################################################################
 
+function _residue_field_generic_fq_default(O, P)
+	f = NfOrdToFqFieldMor(O, P)
+ 	return codomain(f), f
+end
+
 function _residue_field_generic(O, P, small::Type{Val{T}} = Val{false}, degree_one::Type{Val{S}} = Val{false}) where {S, T}
   if small == Val{true}
     @assert fits(Int, minimum(P, copy = false))
@@ -193,12 +198,12 @@ function residue_field(O::NfOrd, P::NfOrdIdl, check::Bool = true)
     !is_prime(P) && error("Ideal must be prime")
   end
   if !is_maximal_known(O) || !is_maximal(O)
-    return _residue_field_generic(O, P)
+    return _residue_field_generic_fq_default(O, P)
   end
   if !is_index_divisor(O, minimum(P)) && has_2_elem(P)
     return _residue_field_nonindex_divisor(O, P)
   else
-    return _residue_field_generic(O, P)
+    return _residue_field_generic_fq_default(O, P)
   end
 end
 
@@ -270,11 +275,12 @@ function relative_residue_field(O::NfRelOrd{S, T, U}, P::NfRelOrdIdl{S, T, U}) w
     end
   end
   FK = codomain(projK)
-  if base_field(K) isa QQField
-    projE = NfRelOrdToRelFinFieldMor{typeof(O), FqPolyRepFieldElem}(O, P, projK)
-  else
-    projE = NfRelOrdToRelFinFieldMor{typeof(O), Hecke.RelFinFieldElem{typeof(FK), typeof(FK.defining_polynomial)}}(O, P, projK)
-  end
+  projE = NfRelOrdToFqFieldRelMor{typeof(O)}(O, P, projK)
+  #if base_field(K) isa QQField
+  #  projE = NfRelOrdToRelFinFieldMor{typeof(O), FqFieldElem}(O, P, projK)
+  #else
+  #  projE = NfRelOrdToRelFinFieldMor{typeof(O), Hecke.RelFinFieldElem{typeof(FK), typeof(FK.defining_polynomial)}}(O, P, projK)
+  #end
   set_attribute!(P, :rel_residue_field_map, projE)
   return codomain(projE), projE
 end

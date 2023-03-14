@@ -224,6 +224,7 @@ function _neighbours(L, P, result, max, callback = eqcallback, use_auto = true)
       x = elem_type(K)[ sum(T[i, j] * (hext\w[i]) for i in 1:n) for j in 1:ncols(T)]
       LL = _neighbour(L, T, pih * matrix(k, 1, length(w), w) * G, K(pi) .* x, hext, P, C, true)
       keep, cont = callback(result, LL)
+      @assert is_modular(LL, P)[1]
       if keep
         push!(result, LL)
       end
@@ -255,6 +256,7 @@ function _neighbours(L, P, result, max, callback = eqcallback, use_auto = true)
       LL = _neighbour(L, T, matrix(k, 1, length(w), w) * G, x, hext, P, P, false)
       keep, cont = callback(result, LL)
       if keep
+        @assert is_modular(LL, P)[1]
         push!(result, LL)
       end
       if !cont || length(result) >= max
@@ -272,6 +274,7 @@ function _neighbours(L, P, result, max, callback = eqcallback, use_auto = true)
       p = minimum(P)
       pi = uniformizer(p)
       kp, hp = residue_field(order(p), p)
+      hpext = extend(hp, base_field(K))
       alpha = h\(degree(k) == 1 ? one(k) : gen(k))
       Tram = matrix(kp, 2, 1, [2, hp(tr(alpha))])
     end
@@ -298,12 +301,13 @@ function _neighbours(L, P, result, max, callback = eqcallback, use_auto = true)
         @assert s * Tram == matrix(kp, 1, 1, [hp(-el)])
         _kernel = [ matrix(kp, 1, 2, v) for v in _all_row_span(V)]
         l = a(hext\(inv(wG[ok])))
-        S = elem_type(K)[ l * (hext\((s + v)[1]) + (hext\(s + v)[2])*alpha) for v in _kernel ]
+        S = elem_type(K)[ l * K((hpext\((s + v)[1])) + K(hpext\(s + v)[2])*alpha) for v in _kernel ]
       end
       for s in S
         LL = _neighbour(L, T, wG, elem_type(K)[x[o] + K(elem_in_nf(pi))*s*T[ok, o] for o in 1:ncols(T)], hext, P, P, false)
         keep, cont = callback(result, LL)
         if keep
+          @assert is_modular(LL, P)[1]
           push!(result, LL)
         end
         if !cont || (length(result) >= max)
@@ -379,6 +383,7 @@ function iterated_neighbours(L::HermLat, P; use_auto = false, max = inf,
   oldlength = length(result)
   while length(result) < max && i <= length(result)
     result = _neighbours(result[i], P, result, max, _callback, use_auto)
+    @assert all(_L -> is_modular(_L, P)[1], result)
     no_lattices = length(result) - oldlength
     oldlength = length(result)
     if use_mass && no_lattices > 0

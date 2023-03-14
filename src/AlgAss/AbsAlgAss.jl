@@ -976,7 +976,8 @@ function __as_field_with_isomorphism(A::AbsAlgAss{FpFieldElem}, f::FpPolyRingEle
 end
 
 function __as_field_with_isomorphism(A::AbsAlgAss{FqFieldElem}, f::FqPolyRingElem, M::FqMatrix)
-  Fr, RtoFr = field_extension(f)
+  Fr, = Hecke.Nemo._FiniteField(f, cached = false)
+  RtoFr = FqPolyRingToFqMor{typeof(parent(f)), typeof(Fr), typeof(f), Any}(Fr, f) 
   return Fr, AbsAlgAssToFqMor(A, Fr, inv(M), M, parent(f), RtoFr)
 end
 
@@ -1212,7 +1213,7 @@ end
 
 # Section 2.3.2 in W. Eberly: Computations for Algebras and Group Representations
 # TODO: Fix the type
-function _radical(A::AbsAlgAss{T}) where { T } #<: Union{ fpFieldElem, Generic.ResF{ZZRingElem} } }
+function _radical_prime_field(A::AbsAlgAss{T}) where { T } #<: Union{ fpFieldElem, Generic.ResF{ZZRingElem} } }
   F = base_ring(A)
   p = characteristic(F)
   k = flog(ZZRingElem(dim(A)), p)
@@ -1262,26 +1263,43 @@ function _radical(A::AbsAlgAss{T}) where { T } #<: Union{ fpFieldElem, Generic.R
   return elem_type(A)[ elem_from_mat_row(A, C, i) for i = 1:nrows(C) ]
 end
 
+function _radical(A::AbsAlgAss{T}) where { T <: Union{ fpFieldElem, FpFieldElem } }
+  return _radical_prime_field(A)
+end
+
 function _radical(A::AbsAlgAss{T}) where { T <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem, FqFieldElem } }
   F = base_ring(A)
 
   p = characteristic(F)
   if T <: fqPolyRepFieldElem
     Fp = GF(Int(p))
+  elseif T === FqFieldElem
+    Fp = Nemo._GF(p)
   else
     Fp = GF(p)
   end
+
   A2, A2toA = restrict_scalars(A, Fp)
-  n = degree(F)
+  if T === FqFieldElem
+    n = absolute_degree(F)
+  else
+    n = degree(F)
+  end
 
   if n == 1
-    J = _radical(A2)
+    J = _radical_prime_field(A2)
     return elem_type(A)[ A2toA(b) for b in J ]
+  end
+
+  if T === FqFieldElem
+    absgenF =  Nemo._gen(F)
+  else
+    absgenF = gen(F)
   end
 
   k = flog(ZZRingElem(dim(A)), p)
   Qx, x = polynomial_ring(FlintQQ, "x", cached = false)
-  f = Qx(push!(QQFieldElem[ -QQFieldElem(coeff(gen(F)^n, i)) for i = 0:(n - 1) ], QQFieldElem(1)))
+  f = Qx(push!(QQFieldElem[ -QQFieldElem(T === FqFieldElem ? Nemo._coeff(absgenF^n, i) : coeff(absgenF^n, i)) for i = 0:(n - 1) ], QQFieldElem(1)))
   K, a = number_field(f, "a")
 
   MF = trace_matrix(A2)
@@ -1322,7 +1340,7 @@ function _radical(A::AbsAlgAss{T}) where { T <: Union{ fqPolyRepFieldElem, FqPol
   return elem_type(A)[ A2toA(elem_from_mat_row(A2, C, i)) for i = 1:nrows(C) ]
 end
 
-function _lift_fq_mat!(M1::MatElem{T}, M2::MatElem{nf_elem}, M3::MatElem{QQPolyRingElem}) where { T <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem } }
+function _lift_fq_mat!(M1::MatElem{T}, M2::MatElem{nf_elem}, M3::MatElem{QQPolyRingElem}) where { T <: Union{ fqPolyRepFieldElem, FqPolyRepFieldElem, FqFieldElem } }
   @assert ncols(M1) == ncols(M2) && ncols(M1) == ncols(M3)
   @assert nrows(M1) == nrows(M2) && nrows(M1) == nrows(M3)
   n = degree(base_ring(M1))
@@ -1332,7 +1350,11 @@ function _lift_fq_mat!(M1::MatElem{T}, M2::MatElem{nf_elem}, M3::MatElem{QQPolyR
     for j = 1:ncols(M1)
       # Sadly, there is no setcoeff! for nf_elem...
       for k = 0:(n - 1)
-        M3[i, j] = setcoeff!(M3[i, j], k, QQFieldElem(coeff(M1[i, j], k)))
+        if T === FqFieldElem
+          M3[i, j] = setcoeff!(M3[i, j], k, QQFieldElem(Nemo._coeff(M1[i, j], k)))
+        else
+          M3[i, j] = setcoeff!(M3[i, j], k, QQFieldElem(coeff(M1[i, j], k)))
+        end
       end
       ccall((:nf_elem_set_fmpq_poly, libantic), Nothing, (Ref{nf_elem}, Ref{QQPolyRingElem}, Ref{AnticNumberField}), M2[i, j], M3[i, j], K)
     end

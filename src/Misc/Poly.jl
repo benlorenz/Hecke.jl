@@ -639,12 +639,12 @@ function roots(f::FpPolyRingElem, K::FqPolyRepField)
   return roots(ff)
 end
 
-function is_power(a::Union{fqPolyRepFieldElem, FqPolyRepFieldElem}, m::Int)
+function is_power(a::Union{fqPolyRepFieldElem, FqPolyRepFieldElem, FqFieldElem}, m::Int)
   if iszero(a)
     return true, a
   end
-  s = size(parent(a))
-  if gcd(s-1, m) == 1
+  s = order(parent(a))
+  if gcd(s - 1, m) == 1
     return true, a^invmod(FlintZZ(m), s-1)
   end
   St, t = polynomial_ring(parent(a), "t", cached=false)
