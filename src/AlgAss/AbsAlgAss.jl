@@ -976,7 +976,7 @@ function __as_field_with_isomorphism(A::AbsAlgAss{FpFieldElem}, f::FpPolyRingEle
 end
 
 function __as_field_with_isomorphism(A::AbsAlgAss{FqFieldElem}, f::FqPolyRingElem, M::FqMatrix)
-  Fr, = Hecke.Nemo._FiniteField(f, cached = false)
+  Fr, = Nemo._residue_field(f)
   RtoFr = FqPolyRingToFqMor{typeof(parent(f)), typeof(Fr), typeof(f), Any}(Fr, f) 
   return Fr, AbsAlgAssToFqMor(A, Fr, inv(M), M, parent(f), RtoFr)
 end
