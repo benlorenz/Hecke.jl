@@ -1,4 +1,4 @@
 @testset "Conjugacy" begin
-  include("Conjugacy/Conjugacy.jl")
-  include("Conjugacy/Husert.jl")
+  @showtime include("Conjugacy/Conjugacy.jl")
+  @showtime include("Conjugacy/Husert.jl")
 end

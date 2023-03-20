@@ -1,4 +1,5 @@
 @testset "Conjugacy" begin
+  @show "here"
   a = ZZRingElem[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
@@ -93,6 +94,7 @@
 end
 
 @testset "basis commutator algebra" begin
+  @show "here2"
 
   F, z = cyclotomic_field(3, cached = false)
   As = dense_matrix_type(F)[matrix(F, 2, 2, [1 0; 0 -1]), identity_matrix(F, 2)]
