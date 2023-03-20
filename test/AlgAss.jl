@@ -1,9 +1,9 @@
 @testset "AlgAss" begin
-  include("AlgAss/AbsAlgAss.jl")
-  include("AlgAss/AlgAss.jl")
-  include("AlgAss/AlgGrp.jl")
-  include("AlgAss/AlgMat.jl")
-  include("AlgAss/Elem.jl")
-  include("AlgAss/Ideal.jl")
-  include("AlgAss/Ramification.jl")
+  @showtime include("AlgAss/AbsAlgAss.jl")
+  @showtime include("AlgAss/AlgAss.jl")
+  @showtime include("AlgAss/AlgGrp.jl")
+  @showtime include("AlgAss/AlgMat.jl")
+  @showtime include("AlgAss/Elem.jl")
+  @showtime include("AlgAss/Ideal.jl")
+  @showtime include("AlgAss/Ramification.jl")
 end
