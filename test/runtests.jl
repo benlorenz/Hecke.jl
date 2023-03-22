@@ -28,7 +28,11 @@ if "long" in ARGS || get(ENV, "HECKE_TESTLONG", "false") in ["1", "true"]
   global long_test = true
 end
 
-PRINT_TIMING_LEVEL = -1
+if VERSION >= v"1.7"
+  GC.enable_logging(true)
+end
+
+PRINT_TIMING_LEVEL = 3
 fl = get(ENV, "HECKE_TEST_TIMING", "false")
 if fl != "false"
   isparallel = true
@@ -165,13 +169,13 @@ end
 # Put FieldFactory.jl and QuadForm.jl at the beginning, because they take the
 # longest
 
-for s in ["QuadForm.jl", "FieldFactory.jl"]
-  if s in tests
-    i = findfirst(isequal(s), tests)
-    deleteat!(tests, i)
-    pushfirst!(tests, s)
-  end
-end
+#for s in ["QuadForm.jl", "FieldFactory.jl"]
+#  if s in tests
+#    i = findfirst(isequal(s), tests)
+#    deleteat!(tests, i)
+#    pushfirst!(tests, s)
+#  end
+#end
 
 # Include all test/*.jl by hand
 # We want many jobs for the parallel run
