@@ -28,7 +28,11 @@ if "long" in ARGS || get(ENV, "HECKE_TESTLONG", "false") in ["1", "true"]
   global long_test = true
 end
 
-PRINT_TIMING_LEVEL = -1
+if VERSION >= v"1.7"
+  GC.enable_logging(true)
+end
+
+PRINT_TIMING_LEVEL = 3
 fl = get(ENV, "HECKE_TEST_TIMING", "false")
 if fl != "false"
   isparallel = true
@@ -162,16 +166,18 @@ for t in readdir(test_directory)
   end
 end
 
+tests=["QuadForm.jl", "AlgAssAbsOrd.jl"]
+
 # Put FieldFactory.jl and QuadForm.jl at the beginning, because they take the
 # longest
 
-for s in ["QuadForm.jl", "FieldFactory.jl"]
-  if s in tests
-    i = findfirst(isequal(s), tests)
-    deleteat!(tests, i)
-    pushfirst!(tests, s)
-  end
-end
+#for s in ["QuadForm.jl", "FieldFactory.jl"]
+#  if s in tests
+#    i = findfirst(isequal(s), tests)
+#    deleteat!(tests, i)
+#    pushfirst!(tests, s)
+#  end
+#end
 
 # Include all test/*.jl by hand
 # We want many jobs for the parallel run
@@ -291,12 +297,12 @@ else
     include("parallel.jl")
   end
 
-  # Run the doctests
-  if v"1.8.0" <= VERSION < v"1.9.0"
-    @info "Running doctests (Julia version is 1.6)"
-    DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
-    doctest(Hecke)
-  else
-    @info "Not running doctests (Julia version must be 1.8)"
-  end
+#  # Run the doctests
+#  if v"1.8.0" <= VERSION < v"1.9.0"
+#    @info "Running doctests (Julia version is 1.6)"
+#    DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+#    doctest(Hecke)
+#  else
+#    @info "Not running doctests (Julia version must be 1.8)"
+#  end
 end

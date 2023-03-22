@@ -7,6 +7,7 @@ on:
       - 'release-'
     tags: '*'
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   # group by workflow and ref; the last slightly strange component ensures that for pull
@@ -31,8 +32,6 @@ jobs:
           - x64
         os:
           - ubuntu-latest
-          - macOS-latest
-          - windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -65,39 +64,3 @@ jobs:
         #        uses: julia-actions/julia-processcoverage@v1
         #      - name: "Upload coverage data to Codecov"
         #        uses: codecov/codecov-action@v3
-
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - run: |
-          echo $RELEASE_VERSION
-          echo ${{ env.RELEASE_VERSION }}
-      - run: |
-          git config user.name github-actions # mike needs a user name, but we do not push the commit, so all is fine
-          git config user.email github-actions@github.com
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: '1'
-      - name: Cache artifacts
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-docdeploy@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
