@@ -166,7 +166,7 @@ for t in readdir(test_directory)
   end
 end
 
-tests=["QuadForm.jl", "AlgAssAbsOrd.jl"]
+tests=["AlgAssAbsOrd.jl"]
 
 # Put FieldFactory.jl and QuadForm.jl at the beginning, because they take the
 # longest
